@@ -1,0 +1,62 @@
+#Title: Measles case distribution
+#Author: Kornelius Son
+#Update: 18/10/2024
+
+
+# Load Package ------------------------------------------------------------
+pacman::p_load(here,
+               tidyverse,
+               janitor,
+               gtsummary,
+               dplyr,
+               ggplot2,
+               sf,
+               readxl,
+               devtools,
+               usethis,
+               leaflet)
+
+
+# Create directory --------------------------------------------------------
+setwd("C:/Users/sonk/Documents/Kornelius Son/Sintax R")
+usethis::create_project("C:/Users/sonk/Documents/Kornelius Son/Sintax R")
+
+
+# Load dataset ------------------------------------------------------------
+campak <- read_excel("C:/Users/sonk/Documents/Kornelius Son/Sintax R/campakR.xlsx", 
+                     sheet = "campak")
+
+campak <-as.data.frame(campak)
+
+
+# Create basemap distribution -------------------------------------------------
+ggplot() +
+     geom_point(data = campak, aes(x = Long, y = Lat), color = "blue", shape = 16)
+campakmap <- leaflet(data = campak) |> 
+     setView(lng = 140.7167, lat = -2.5333, zoom = 16)
+campakmap
+
+
+
+# creating map by case classification  ------------------------------------
+color_pal <- colorFactor(palette = c("red", "darkgreen", "grey", "orange"), domain = campak$Final)
+campakmap <- leaflet(data = campak) %>% 
+     setView(lng = 140.7167, lat = -2.5333, zoom = 12) %>% 
+     addTiles() %>% 
+     addCircleMarkers(
+          ~Long, 
+          ~Lat, 
+          color = ~color_pal(Final),  # Set color based on 'Final' variable
+          radius = 6,
+          stroke = FALSE,
+          fillOpacity = 0.7,
+          clusterOptions = markerClusterOptions(),
+          group = "Final"
+     ) %>%
+     addLegend(
+          position = "bottomright",
+          pal = color_pal, 
+          values = ~Final,
+          title = "Final Groups"
+     )
+campakmap 
